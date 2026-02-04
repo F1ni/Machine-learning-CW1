@@ -21,7 +21,7 @@ numeric_pipeline = Pipeline([# fill missing numeric values
 ])
 
 categorical_pipeline = Pipeline([ # fill missing categories
-    ("encoder", OrdinalEncoder())    # convert words to numbers safely
+    ("encoder", OneHotEncoder())    # convert words to numbers safely
 ])
 
 preprocessor = ColumnTransformer([
