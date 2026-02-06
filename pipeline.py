@@ -2,26 +2,38 @@ from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder
 from sklearn.impute import SimpleImputer
-from sklearn.linear_model import Ridge
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import Ridge, LinearRegression
+from sklearn.ensemble import RandomForestRegressor, HistGradientBoostingRegressor
 import pandas as pd
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import r2_score
+
+columns_to_remove = [
+
+    'a6', 'a7', 'a8', 'a9', 'a10',
+    'b6', 'b7', 'b8', 'b9', 'b10',
+]
 
 df = pd.read_csv("CW1_train.csv")
 
-y = df.iloc[:, 0]
-X = df.iloc[:, 1:]
+df = df.drop(columns=columns_to_remove, errors="ignore")
+
+y = df["outcome"]
+X = df.drop(columns=['outcome'])
 categorical_features = ["cut", "color", "clarity"]
+
 numeric_features = [col for col in X.columns if col not in categorical_features]
 
 
-numeric_pipeline = Pipeline([# fill missing numeric values
-    ("scaler", StandardScaler())                     # scale features to mean=0, std=1
+
+numeric_pipeline = Pipeline([
+    ("imputer", SimpleImputer(strategy="median")),
+    ("scaler", StandardScaler())         
 ])
 
-categorical_pipeline = Pipeline([ # fill missing categories
-    ("encoder", OneHotEncoder())    # convert words to numbers safely
+categorical_pipeline = Pipeline([
+    ("imputer", SimpleImputer(strategy="most_frequent")),
+    ("encoder", OneHotEncoder(handle_unknown="ignore"))
 ])
 
 preprocessor = ColumnTransformer([
@@ -29,18 +41,34 @@ preprocessor = ColumnTransformer([
     ("cat", categorical_pipeline, categorical_features)
 ])
 
-model = Pipeline([
-    ("preprocessor", preprocessor),
-    ("regressor", RandomForestRegressor(n_estimators=100, random_state=42))
-])
+models = {
+    "regressor": LinearRegression(),
+    "ridge": Ridge(alpha=1.0),
+    "random forest": RandomForestRegressor(n_estimators=100, random_state=42),
+    "Gradient boosting": HistGradientBoostingRegressor(random_state=42)
+}
+
+results = {}
+
+for type, model in models.items():
+    pipeline = Pipeline([
+        ("preprocessor", preprocessor),
+        ("regressor", model)
+    ])
+
+    crossvalidation_scores = cross_val_score(
+        pipeline,
+        X,
+        y,
+        cv=7,
+        scoring="r2"
+    )
+
+    results[type] = "mean: " + str(crossvalidation_scores.mean()) + "sd: " + str(crossvalidation_scores.std())
+
+print(results)
 
 
-# Split training data
-X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Train
-model.fit(X_train, y_train)
-
-# Validate
-y_pred = model.predict(X_val)
-print("Validation R²:", r2_score(y_val, y_pred))
+# print("Cross validation R2 scores: ", crossvalidation_scores)
+# print("Mean R2", crossvalidation_scores.mean())
+# print("Std R2", crossvalidation_scores.std())

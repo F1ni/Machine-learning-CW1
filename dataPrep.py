@@ -50,15 +50,15 @@ correlation_spearman = correlation_spearman.sort_values(ascending=False)
 print("Spearman correlation:\n", correlation_spearman)
 
 
-# correlation matrix heatmap
-# plt.figure(figsize=(12, 10))
-# sns.heatmap(
-#     df[numeric_cols].corr(),
-#     cmap="coolwarm",
-#     center=0
-# )
-# plt.title("Correlation Matrix Heatmap for numeric")
-# plt.show()
+#correlation matrix heatmap
+plt.figure(figsize=(12, 10))
+sns.heatmap(
+    df[numeric_cols].corr(),
+    cmap="coolwarm",
+    center=0
+)
+plt.title("Correlation Matrix Heatmap for numeric")
+plt.show()
 
 
 # categorical features 
