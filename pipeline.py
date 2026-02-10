@@ -7,11 +7,14 @@ from sklearn.ensemble import RandomForestRegressor, HistGradientBoostingRegresso
 import pandas as pd
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import r2_score
+import joblib
 
 columns_to_remove = [
 
     'a6', 'a7', 'a8', 'a9', 'a10',
     'b6', 'b7', 'b8', 'b9', 'b10',
+
+    # can keep a8 and b10
 ]
 
 df = pd.read_csv("CW1_train.csv")
@@ -41,6 +44,13 @@ preprocessor = ColumnTransformer([
     ("cat", categorical_pipeline, categorical_features)
 ])
 
+
+final_model = Pipeline([
+    ("preprocessor", preprocessor),
+    ("regressor", HistGradientBoostingRegressor(random_state=42))
+])
+
+
 models = {
     "regressor": LinearRegression(),
     "ridge": Ridge(alpha=1.0),
@@ -48,25 +58,43 @@ models = {
     "Gradient boosting": HistGradientBoostingRegressor(random_state=42)
 }
 
-results = {}
+# create csv file
 
-for type, model in models.items():
-    pipeline = Pipeline([
-        ("preprocessor", preprocessor),
-        ("regressor", model)
-    ])
+X_tst = pd.read_csv('CW1_test.csv') 
 
-    crossvalidation_scores = cross_val_score(
-        pipeline,
-        X,
-        y,
-        cv=7,
-        scoring="r2"
-    )
+final_model.fit(X, y)
 
-    results[type] = "mean: " + str(crossvalidation_scores.mean()) + "sd: " + str(crossvalidation_scores.std())
+yhat_lm = final_model.predict(X_tst)
 
-print(results)
+# Format submission:
+# This is a single-column CSV with nothing but your predictions
+out = pd.DataFrame({'yhat': yhat_lm})
+out.to_csv('CW1_submission_K23166817.csv', index=False) # Please use your k-number here
+
+
+
+# joblib.dump(final_model, "best_model_gradient_boosting.joblib")
+# print("Model saved as 'best_model_gradient_boosting.joblib'")
+
+# results = {}
+
+# for type, model in models.items():
+#     pipeline = Pipeline([
+#         ("preprocessor", preprocessor),
+#         ("regressor", model)
+#     ])
+
+#     crossvalidation_scores = cross_val_score(
+#         pipeline,
+#         X,
+#         y,
+#         cv=7,
+#         scoring="r2"
+#     )
+
+#     results[type] = "mean: " + str(crossvalidation_scores.mean()) + "sd: " + str(crossvalidation_scores.std())
+
+# print(results)
 
 
 # print("Cross validation R2 scores: ", crossvalidation_scores)
