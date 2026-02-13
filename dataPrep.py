@@ -21,47 +21,30 @@ print(df.describe())
 
 print(df.isnull().sum())
 
-# outcome distribution
-# plt.figure()
-# plt.hist(df["outcome"], bins=40)
-# plt.title("Distribution of outcome")
-# plt.xlabel("Outcome")
-# plt.ylabel("Frequency")
-# plt.show()
-
 
 # numeric feature distribution
 numeric_cols = df.select_dtypes(include="number").columns.drop("outcome")
 
 df[numeric_cols].hist(bins=30, figsize=(12, 8))
 plt.suptitle("Numeric Feature distribution")
+plt.tight_layout()
 plt.show()
 
 
-# pearson correlation
-correlation_pearson = df[numeric_cols.tolist() + ["outcome"]].corr(method="pearson")["outcome"]
-correlation_pearson = correlation_pearson.sort_values(ascending=False)
-print("Pearson correlation:\n", correlation_pearson)
-
-
-# spearman correlation
-correlation_spearman = df[numeric_cols.tolist() + ["outcome"]].corr(method="spearman")["outcome"]
-correlation_spearman = correlation_spearman.sort_values(ascending=False)
-print("Spearman correlation:\n", correlation_spearman)
-
-
 #correlation matrix heatmap
-plt.figure(figsize=(12, 10))
+plt.figure(figsize=(20, 20))
 sns.heatmap(
-    df[numeric_cols].corr(),
+    df[numeric_cols].corr().round(2),
     cmap="coolwarm",
-    center=0
+    annot=True,
+    center=0,
+    
 )
 plt.title("Correlation Matrix Heatmap for numeric")
 plt.show()
 
 
-# categorical features 
+# # categorical features 
 categorical_features = ["cut", "color", "clarity"]
 
 for col in categorical_features:
@@ -90,45 +73,3 @@ mutual_info = mutual_info_regression(X_num, y, random_state=42)
 mutual_info_score = pd.Series(mutual_info, index=X_num.columns).sort_values(ascending=False)
 
 print("\nMutual Information scores:\n", mutual_info_score)
-
-# permutation importance
-
-df_encoded = pd.get_dummies(df, columns=["cut", "color", "clarity"], drop_first=True)
-
-
-X = df_encoded.drop(columns=["outcome"])
-y = df_encoded["outcome"]
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
-
-
-model = RandomForestRegressor(
-    n_estimators=100, 
-    random_state=42, 
-    n_jobs=-1
-)
-model.fit(X_train, y_train)
-
-
-print("Calculating Permutation Importance... (this may take a moment)")
-perm = permutation_importance(
-    model,
-    X_test,
-    y_test,
-    n_repeats=10,
-    random_state=42,
-    n_jobs=-1,
-)
-
-
-
-perm_importance = pd.DataFrame({
-    "feature": X.columns,
-    "importance_mean": perm.importances_mean,
-    "importance_std": perm.importances_std
-}).sort_values(by="importance_mean", ascending=False)
-
-print("\nTop Feature Importances:")
-print(perm_importance.head(20))

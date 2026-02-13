@@ -1,13 +1,12 @@
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder
-from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.linear_model import Ridge, LinearRegression
 from sklearn.ensemble import RandomForestRegressor, HistGradientBoostingRegressor
 import pandas as pd
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import r2_score
-import joblib
+
 
 columns_to_remove = [
 
@@ -30,12 +29,10 @@ numeric_features = [col for col in X.columns if col not in categorical_features]
 
 
 numeric_pipeline = Pipeline([
-    ("imputer", SimpleImputer(strategy="median")),
     ("scaler", StandardScaler())         
 ])
 
 categorical_pipeline = Pipeline([
-    ("imputer", SimpleImputer(strategy="most_frequent")),
     ("encoder", OneHotEncoder(handle_unknown="ignore"))
 ])
 
@@ -58,45 +55,42 @@ models = {
     "Gradient boosting": HistGradientBoostingRegressor(random_state=42)
 }
 
-# create csv file
+# # create csv file
 
-X_tst = pd.read_csv('CW1_test.csv') 
+# X_tst = pd.read_csv('CW1_test.csv') 
 
-final_model.fit(X, y)
+# final_model.fit(X, y)
 
-yhat_lm = final_model.predict(X_tst)
+# yhat_lm = final_model.predict(X_tst)
 
-# Format submission:
-# This is a single-column CSV with nothing but your predictions
-out = pd.DataFrame({'yhat': yhat_lm})
-out.to_csv('CW1_submission_K23166817.csv', index=False) # Please use your k-number here
+# # Format submission:
+# # This is a single-column CSV with nothing but your predictions
+# out = pd.DataFrame({'yhat': yhat_lm})
+# out.to_csv('CW1_submission_K23166817.csv', index=False) # Please use your k-number here
 
 
 
 # joblib.dump(final_model, "best_model_gradient_boosting.joblib")
 # print("Model saved as 'best_model_gradient_boosting.joblib'")
 
-# results = {}
+results = {}
 
-# for type, model in models.items():
-#     pipeline = Pipeline([
-#         ("preprocessor", preprocessor),
-#         ("regressor", model)
-#     ])
+for type, model in models.items():
+    pipeline = Pipeline([
+        ("preprocessor", preprocessor),
+        ("regressor", model)
+    ])
 
-#     crossvalidation_scores = cross_val_score(
-#         pipeline,
-#         X,
-#         y,
-#         cv=7,
-#         scoring="r2"
-#     )
+    crossvalidation_scores = cross_val_score(
+        pipeline,
+        X,
+        y,
+        cv=5,
+        scoring="r2"
+    )
 
-#     results[type] = "mean: " + str(crossvalidation_scores.mean()) + "sd: " + str(crossvalidation_scores.std())
+    results[type] = "mean: " + str(crossvalidation_scores.mean()) + "sd: " + str(crossvalidation_scores.std())
 
-# print(results)
+print(results)
 
 
-# print("Cross validation R2 scores: ", crossvalidation_scores)
-# print("Mean R2", crossvalidation_scores.mean())
-# print("Std R2", crossvalidation_scores.std())
