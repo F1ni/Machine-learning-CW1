@@ -32,34 +32,16 @@ plt.show()
 
 
 #correlation matrix heatmap
-plt.figure(figsize=(20, 20))
+plt.figure(figsize=(15, 12))
 sns.heatmap(
     df[numeric_cols].corr().round(2),
     cmap="coolwarm",
-    annot=True,
     center=0,
     
 )
 plt.title("Correlation Matrix Heatmap for numeric")
 plt.show()
 
-
-# # categorical features 
-categorical_features = ["cut", "color", "clarity"]
-
-for col in categorical_features:
-    print(f"\nMean outcome by {col}:")
-    print(df.groupby(col)["outcome"].mean().sort_values())
-
-
-# one hot encoding
-categorical_encoded = pd.get_dummies(df, columns=categorical_features, drop_first=True)
-
-
-# correlation of encoded features
-correlation_encoded = categorical_encoded.corr()["outcome"].sort_values(ascending=False)
-print(f"\nMean outcome by {col}:")
-print(df.groupby(col)["outcome"].mean().sort_values())
 
 
 # mutual information
