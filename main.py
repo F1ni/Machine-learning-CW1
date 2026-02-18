@@ -123,7 +123,7 @@ def testing_all_models():
     print(results)
 
 # main
-# testing_all_models()
+testing_all_models()
 create_csv_using_best_model()
 # hyperparameter_tuning_using_gridsearch()
 
